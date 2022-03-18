@@ -1,31 +1,21 @@
 package main
 
 import (
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestPing(t *testing.T) {
-	rr := httptest.NewRecorder()
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	app := newTestApplication(t)
 
-	ping(rr, r)
+	ts := newTestServer(t, app.routes())
+	defer ts.Close()
 
-	rs := rr.Result()
-	if rs.StatusCode != http.StatusOK {
-		t.Errorf("want %d; got %d", http.StatusOK, rs.StatusCode)
-	}
+	code, _, body := ts.get(t, "/ping")
 
-	defer rs.Body.Close()
-	body, err := io.ReadAll(rs.Body)
-	if err != nil {
-		t.Fatal(err)
+	if code != http.StatusOK {
+		t.Errorf("want %d; got %d", http.StatusOK, code)
 	}
 
 	if string(body) != "OK" {
