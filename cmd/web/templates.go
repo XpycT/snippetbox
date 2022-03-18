@@ -2,11 +2,13 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"github.com/xpyct/snippetbox/pkg/forms"
 	"github.com/xpyct/snippetbox/pkg/models"
+	"github.com/xpyct/snippetbox/ui"
 )
 
 type templateData struct {
@@ -30,11 +32,11 @@ var functions = template.FuncMap{
 	"humanDate": humanDate,
 }
 
-func newTemplateCache(dir string) (map[string]*template.Template, error) {
+func newTemplateCache() (map[string]*template.Template, error) {
 
 	cache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob(filepath.Join(dir, "*.page.tmpl"))
+	pages, err := fs.Glob(ui.Files, "html/*.page.tmpl")
 	if err != nil {
 		return nil, err
 	}
@@ -43,17 +45,17 @@ func newTemplateCache(dir string) (map[string]*template.Template, error) {
 
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, page)
 		if err != nil {
 			return nil, err
 		}
 
-		ts, err = ts.ParseGlob(filepath.Join(dir, "*.layout.tmpl"))
+		ts, err = ts.ParseFS(ui.Files, "html/*.layout.tmpl")
 		if err != nil {
 			return nil, err
 		}
 
-		ts, err = ts.ParseGlob(filepath.Join(dir, "*.partial.tmpl"))
+		ts, err = ts.ParseFS(ui.Files, "html/*.partial.tmpl")
 		if err != nil {
 			return nil, err
 		}

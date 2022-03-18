@@ -5,6 +5,7 @@ import (
 
 	"github.com/bmizerany/pat"
 	"github.com/justinas/alice"
+	"github.com/xpyct/snippetbox/ui"
 )
 
 func (app *application) routes() http.Handler {
@@ -26,9 +27,9 @@ func (app *application) routes() http.Handler {
 
 	mux.Get("/ping", http.HandlerFunc(ping))
 
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./ui/static")})
+	fileServer := http.FileServer(neuteredFileSystem{http.FS(ui.Files)})
 	mux.Get("/static", http.NotFoundHandler())
-	mux.Get("/static/", http.StripPrefix("/static", fileServer))
+	mux.Get("/static/", fileServer)
 
 	return standartMiddleware.Then(mux)
 }
